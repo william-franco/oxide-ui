@@ -1,0 +1,19 @@
+// Material 3 motion durations and interaction state opacities.
+// Components use the M3 "standard" easing: cubic-bezier(0.2, 0, 0, 1).
+
+export global OxideMotion {
+    in-out property <bool> reduced: false;
+
+    out property <duration> short: reduced ? 0ms : 100ms;
+    out property <duration> medium: reduced ? 0ms : 200ms;
+    out property <duration> long: reduced ? 0ms : 300ms;
+}
+
+export global OxideState {
+    out property <float> hover: 0.08;
+    out property <float> focus: 0.10;
+    out property <float> pressed: 0.10;
+    out property <float> dragged: 0.16;
+    out property <float> disabled-content: 0.38;
+    out property <float> disabled-container: 0.12;
+}

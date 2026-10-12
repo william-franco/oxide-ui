@@ -1,0 +1,23 @@
+import { OxideTheme } from "../theme.slint";
+
+// Bundled Material Symbols (24dp, single path, colorized at runtime).
+export global OxideIcons {
+    out property <image> backspace: @image-url("../icons/backspace.svg");
+    out property <image> check: @image-url("../icons/check.svg");
+    out property <image> close: @image-url("../icons/close.svg");
+    out property <image> dark-mode: @image-url("../icons/dark-mode.svg");
+    out property <image> delete: @image-url("../icons/delete.svg");
+    out property <image> expand-less: @image-url("../icons/expand-less.svg");
+    out property <image> expand-more: @image-url("../icons/expand-more.svg");
+    out property <image> function: @image-url("../icons/function.svg");
+    out property <image> history: @image-url("../icons/history.svg");
+    out property <image> light-mode: @image-url("../icons/light-mode.svg");
+}
+
+export component OxideIcon inherits Image {
+    in property <length> size: 24px;
+    width: self.size;
+    height: self.size;
+    image-fit: contain;
+    colorize: OxideTheme.colors.on-surface;
+}

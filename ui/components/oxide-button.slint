@@ -1,0 +1,152 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideElevation, OxideShadow } from "../tokens/elevation.slint";
+import { OxideMotion, OxideState } from "../tokens/motion.slint";
+import { OxideStateLayer, OxideFocusRing } from "oxide-state-layer.slint";
+
+export enum OxideButtonVariant {
+    filled,
+    tonal,
+    tertiary,
+    surface,
+    danger,
+    elevated,
+    outlined,
+    text,
+}
+
+// M3 common button. `radius` / `pressed-radius` allow the shape-morph feedback of M3 Expressive.
+export component OxideButton {
+    in property <string> text;
+    in property <image> icon;
+    in property <OxideButtonVariant> variant: OxideButtonVariant.filled;
+    in property <bool> enabled: true;
+    in property <string> description: root.text;
+    in property <length> font-size: OxideType.label-large.size;
+    in property <int> font-weight: OxideType.label-large.weight;
+    in property <string> font-family: OxideType.family;
+    in property <length> icon-size: 18px;
+    in property <length> radius: OxideShape.full;
+    in property <length> pressed-radius: root.radius;
+    out property <bool> has-focus: fs.has-focus;
+    out property <bool> pressed: touch.pressed;
+    callback clicked;
+
+    property <bool> container-less: root.variant == OxideButtonVariant.outlined || root.variant == OxideButtonVariant.text;
+    property <color> container-color: !root.enabled
+        ? (root.container-less ? transparent : OxideTheme.colors.on-surface.with-alpha(OxideState.disabled-container))
+        : root.variant == OxideButtonVariant.filled ? OxideTheme.colors.primary
+        : root.variant == OxideButtonVariant.tonal ? OxideTheme.colors.secondary-container
+        : root.variant == OxideButtonVariant.tertiary ? OxideTheme.colors.tertiary-container
+        : root.variant == OxideButtonVariant.surface ? OxideTheme.colors.surface-container-highest
+        : root.variant == OxideButtonVariant.danger ? OxideTheme.colors.error-container
+        : root.variant == OxideButtonVariant.elevated ? OxideTheme.colors.surface-container-low
+        : transparent;
+    property <color> content-color: !root.enabled
+        ? OxideTheme.colors.on-surface.with-alpha(OxideState.disabled-content)
+        : root.variant == OxideButtonVariant.filled ? OxideTheme.colors.on-primary
+        : root.variant == OxideButtonVariant.tonal ? OxideTheme.colors.on-secondary-container
+        : root.variant == OxideButtonVariant.tertiary ? OxideTheme.colors.on-tertiary-container
+        : root.variant == OxideButtonVariant.surface ? OxideTheme.colors.on-surface
+        : root.variant == OxideButtonVariant.danger ? OxideTheme.colors.on-error-container
+        : OxideTheme.colors.primary;
+    property <int> elevation: !root.enabled ? 0
+        : root.variant == OxideButtonVariant.elevated ? (touch.has-hover && !touch.pressed ? 2 : 1)
+        : root.container-less ? 0
+        : (touch.has-hover && !touch.pressed ? 1 : 0);
+    property <OxideShadow> shadow: OxideElevation.level(root.elevation);
+    property <bool> has-icon: root.icon.width > 0;
+    property <length> current-radius: min(touch.pressed ? root.pressed-radius : root.radius, min(root.width, root.height) / 2);
+
+    min-width: OxideSpacing.min-target;
+    min-height: OxideSpacing.min-target;
+    preferred-height: OxideSpacing.min-target;
+
+    accessible-role: button;
+    accessible-label: root.description;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if (root.enabled) {
+            root.clicked();
+        }
+    }
+
+    container := Rectangle {
+        border-radius: root.current-radius;
+        background: root.container-color;
+        border-width: root.variant == OxideButtonVariant.outlined ? 1px : 0px;
+        border-color: root.enabled ? OxideTheme.colors.outline : OxideTheme.colors.on-surface.with-alpha(OxideState.disabled-container);
+        drop-shadow-blur: root.shadow.blur;
+        drop-shadow-offset-y: root.shadow.offset-y;
+        drop-shadow-color: OxideTheme.colors.shadow.with-alpha(root.shadow.opacity);
+
+        animate border-radius { duration: OxideMotion.medium; easing: cubic-bezier(0.2, 0, 0, 1); }
+        animate background, drop-shadow-blur, drop-shadow-offset-y { duration: OxideMotion.medium; easing: cubic-bezier(0.2, 0, 0, 1); }
+
+        OxideStateLayer {
+            border-radius: parent.border-radius;
+            tint: root.content-color;
+            hovered: touch.has-hover;
+            pressed: touch.pressed;
+            focused: fs.has-focus;
+            enabled: root.enabled;
+        }
+
+        HorizontalLayout {
+            padding-left: root.has-icon && root.text != "" ? OxideSpacing.lg : OxideSpacing.xl;
+            padding-right: OxideSpacing.xl;
+            spacing: OxideSpacing.sm;
+            alignment: center;
+
+            if root.has-icon: VerticalLayout {
+                alignment: center;
+                Image {
+                    source: root.icon;
+                    colorize: root.content-color;
+                    width: root.icon-size;
+                    height: root.icon-size;
+                    image-fit: contain;
+                }
+            }
+
+            if root.text != "": Text {
+                text: root.text;
+                color: root.content-color;
+                font-size: root.font-size;
+                font-weight: root.font-weight;
+                font-family: root.font-family;
+                vertical-alignment: center;
+                horizontal-alignment: center;
+                overflow: elide;
+            }
+        }
+    }
+
+    OxideFocusRing {
+        active: fs.has-focus;
+        radius: root.current-radius;
+    }
+
+    fs := FocusScope {
+        enabled: root.enabled;
+        focus-on-click: false;
+
+        key-pressed(event) => {
+            if (event.text == " " || event.text == Key.Return) {
+                root.clicked();
+                return accept;
+            }
+            reject
+        }
+
+        touch := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: pointer;
+            clicked => {
+                root.clicked();
+            }
+        }
+    }
+}

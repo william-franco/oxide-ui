@@ -1,6 +1,51 @@
 # Oxide UI
 
-Lorem ipsum.
+Design system **Oxide** para o ecossistema de apps desktop Oxide (Rust + Slint), seguindo o Material Design 3.
+
+A crate não tem dependências de runtime: ela distribui apenas arquivos `.slint` (tokens + componentes) e expõe o caminho deles para o `build.rs` dos apps.
+
+## Conteúdo
+
+- `ui/tokens/`: cores M3 claro/escuro (`OxideSchemes`), tipografia (`OxideType`), espaçamento e breakpoints (`OxideSpacing`, `OxideBreakpoints`), formas (`OxideShape`), elevação (`OxideElevation`), motion e opacidades de estado (`OxideMotion`, `OxideState`).
+- `ui/theme.slint`: `OxideTheme` (`dark`, `light-scheme`, `dark-scheme`, `colors`).
+- `ui/components/`: `OxideButton`, `OxideIconButton`, `OxideDisplay`, `OxidePanel`, `OxideScrim`, `OxideDivider`, `OxideListItem`, `OxideSegmented`, `OxideIcon`/`OxideIcons`, `OxideStateLayer`, `OxideFocusRing`.
+- `ui/oxide.slint`: ponto de entrada único.
+
+## Uso em um app
+
+```toml
+[dependencies]
+slint = "1.18"
+
+[build-dependencies]
+slint-build = "1.18"
+oxide-ui = { git = "https://github.com/william-franco/oxide-ui", branch = "main" }
+```
+
+```rust
+// build.rs
+fn main() {
+    let config = slint_build::CompilerConfiguration::new()
+        .with_style("material".into())
+        .with_library_paths(std::collections::HashMap::from([(
+            oxide_ui::LIBRARY_NAME.to_string(),
+            std::path::PathBuf::from(oxide_ui::SLINT_DIR),
+        )]));
+    slint_build::compile_with_config("ui/app.slint", config).expect("Slint build failed");
+}
+```
+
+```slint
+import { OxideTheme, OxideButton, OxideButtonVariant } from "@oxide/oxide.slint";
+```
+
+Para trocar o tema: `OxideTheme.dark = true;`. Para usar outra paleta, substitua `OxideTheme.light-scheme` / `OxideTheme.dark-scheme`.
+
+## Galeria
+
+```
+cargo run --example gallery
+```
 
 ## ScreenShots
 

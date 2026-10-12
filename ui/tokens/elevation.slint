@@ -1,0 +1,22 @@
+// Material 3 elevation levels 0..5, expressed as drop shadows.
+
+export struct OxideShadow {
+    blur: length,
+    offset-y: length,
+    opacity: float,
+}
+
+export global OxideElevation {
+    out property <[OxideShadow]> levels: [
+        { blur: 0px, offset-y: 0px, opacity: 0.0 },
+        { blur: 3px, offset-y: 1px, opacity: 0.15 },
+        { blur: 6px, offset-y: 2px, opacity: 0.18 },
+        { blur: 8px, offset-y: 4px, opacity: 0.20 },
+        { blur: 10px, offset-y: 6px, opacity: 0.22 },
+        { blur: 12px, offset-y: 8px, opacity: 0.25 },
+    ];
+
+    public pure function level(index: int) -> OxideShadow {
+        levels[max(0, min(5, index))]
+    }
+}

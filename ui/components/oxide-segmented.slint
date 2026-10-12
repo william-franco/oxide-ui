@@ -1,0 +1,105 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideMotion } from "../tokens/motion.slint";
+import { OxideStateLayer, OxideFocusRing } from "oxide-state-layer.slint";
+
+// M3 single-select segmented button. Arrow keys move the selection while focused.
+export component OxideSegmented {
+    in property <[string]> options;
+    in-out property <int> selected;
+    in property <string> description;
+    callback selection-changed(index: int);
+
+    function select(index: int) {
+        if (index >= 0 && index < root.options.length && index != root.selected) {
+            root.selected = index;
+            root.selection-changed(index);
+        }
+    }
+
+    min-height: OxideSpacing.min-target;
+    preferred-width: root.options.length * 72px;
+
+    accessible-role: tab-list;
+    accessible-label: root.description;
+
+    fs := FocusScope {
+        focus-on-click: false;
+
+        key-pressed(event) => {
+            if (event.text == Key.LeftArrow) {
+                root.select(root.selected - 1);
+                return accept;
+            }
+            if (event.text == Key.RightArrow) {
+                root.select(root.selected + 1);
+                return accept;
+            }
+            reject
+        }
+
+        frame := Rectangle {
+            y: (parent.height - 40px) / 2;
+            height: 40px;
+            border-radius: OxideShape.full;
+            border-width: 1px;
+            border-color: OxideTheme.colors.outline;
+            clip: true;
+
+            HorizontalLayout {
+                for option[index] in root.options: segment := Rectangle {
+                    property <bool> is-selected: index == root.selected;
+
+                    horizontal-stretch: 1;
+                    background: self.is-selected ? OxideTheme.colors.secondary-container : transparent;
+                    accessible-role: tab;
+                    accessible-label: option;
+                    accessible-checked: self.is-selected;
+                    accessible-action-default => {
+                        root.select(index);
+                    }
+
+                    animate background { duration: OxideMotion.medium; easing: cubic-bezier(0.2, 0, 0, 1); }
+
+                    Rectangle {
+                        x: 0;
+                        width: 1px;
+                        visible: index > 0;
+                        background: OxideTheme.colors.outline;
+                    }
+
+                    OxideStateLayer {
+                        tint: segment.is-selected ? OxideTheme.colors.on-secondary-container : OxideTheme.colors.on-surface;
+                        hovered: touch.has-hover;
+                        pressed: touch.pressed;
+                    }
+
+                    Text {
+                        text: option;
+                        font-size: OxideType.label-large.size;
+                        font-weight: OxideType.label-large.weight;
+                        color: segment.is-selected ? OxideTheme.colors.on-secondary-container : OxideTheme.colors.on-surface;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    touch := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => {
+                            root.select(index);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    OxideFocusRing {
+        y: frame.y - 5px;
+        height: 50px;
+        active: fs.has-focus;
+        radius: OxideShape.full;
+    }
+}

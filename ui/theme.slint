@@ -1,0 +1,10 @@
+import { OxideColorScheme, OxideSchemes } from "tokens/colors.slint";
+
+// Active theme. Apps flip `dark` (or replace the schemes) and every Oxide component follows.
+export global OxideTheme {
+    in-out property <bool> dark: false;
+    in-out property <OxideColorScheme> light-scheme: OxideSchemes.light;
+    in-out property <OxideColorScheme> dark-scheme: OxideSchemes.dark;
+
+    out property <OxideColorScheme> colors: dark ? dark-scheme : light-scheme;
+}

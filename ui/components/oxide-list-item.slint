@@ -1,0 +1,86 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideStateLayer, OxideFocusRing } from "oxide-state-layer.slint";
+
+// M3 one/two-line list item.
+export component OxideListItem {
+    in property <string> headline;
+    in property <string> supporting;
+    in property <TextHorizontalAlignment> text-alignment: left;
+    in property <bool> enabled: true;
+    in property <string> description: root.headline + (root.supporting == "" ? "" : ", " + root.supporting);
+    out property <bool> has-focus: fs.has-focus;
+    callback clicked;
+
+    min-height: root.supporting == "" ? 56px : 72px;
+
+    accessible-role: list-item;
+    accessible-label: root.description;
+    accessible-action-default => {
+        if (root.enabled) {
+            root.clicked();
+        }
+    }
+
+    OxideStateLayer {
+        border-radius: OxideShape.medium;
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+        focused: fs.has-focus;
+        enabled: root.enabled;
+    }
+
+    VerticalLayout {
+        padding-left: OxideSpacing.lg;
+        padding-right: OxideSpacing.lg;
+        padding-top: OxideSpacing.sm;
+        padding-bottom: OxideSpacing.sm;
+        spacing: OxideSpacing.xxs;
+        alignment: center;
+
+        Text {
+            text: root.supporting;
+            visible: root.supporting != "";
+            font-size: OxideType.body-medium.size;
+            color: OxideTheme.colors.on-surface-variant;
+            horizontal-alignment: root.text-alignment;
+            overflow: elide;
+        }
+
+        Text {
+            text: root.headline;
+            font-size: OxideType.title-large.size;
+            color: OxideTheme.colors.on-surface;
+            horizontal-alignment: root.text-alignment;
+            overflow: elide;
+        }
+    }
+
+    OxideFocusRing {
+        active: fs.has-focus;
+        radius: OxideShape.medium;
+    }
+
+    fs := FocusScope {
+        enabled: root.enabled;
+        focus-on-click: false;
+
+        key-pressed(event) => {
+            if (event.text == " " || event.text == Key.Return) {
+                root.clicked();
+                return accept;
+            }
+            reject
+        }
+
+        touch := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: pointer;
+            clicked => {
+                root.clicked();
+            }
+        }
+    }
+}

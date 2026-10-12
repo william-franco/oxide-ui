@@ -1,0 +1,104 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideMotion, OxideState } from "../tokens/motion.slint";
+import { OxideStateLayer, OxideFocusRing } from "oxide-state-layer.slint";
+
+export enum OxideIconButtonVariant {
+    standard,
+    filled,
+    tonal,
+    outlined,
+}
+
+// M3 icon button: 40dp container inside a 48dp touch target. `selected` renders the toggle state.
+export component OxideIconButton {
+    in property <image> icon;
+    in property <OxideIconButtonVariant> variant: OxideIconButtonVariant.standard;
+    in property <bool> enabled: true;
+    in property <bool> selected;
+    in property <string> description;
+    out property <bool> has-focus: fs.has-focus;
+    callback clicked;
+
+    property <color> container-color: !root.enabled
+        ? (root.variant == OxideIconButtonVariant.standard || root.variant == OxideIconButtonVariant.outlined ? transparent : OxideTheme.colors.on-surface.with-alpha(OxideState.disabled-container))
+        : root.variant == OxideIconButtonVariant.filled ? OxideTheme.colors.primary
+        : root.variant == OxideIconButtonVariant.tonal ? OxideTheme.colors.secondary-container
+        : root.selected && root.variant == OxideIconButtonVariant.outlined ? OxideTheme.colors.inverse-surface
+        : transparent;
+    property <color> content-color: !root.enabled
+        ? OxideTheme.colors.on-surface.with-alpha(OxideState.disabled-content)
+        : root.variant == OxideIconButtonVariant.filled ? OxideTheme.colors.on-primary
+        : root.variant == OxideIconButtonVariant.tonal ? OxideTheme.colors.on-secondary-container
+        : root.selected && root.variant == OxideIconButtonVariant.outlined ? OxideTheme.colors.inverse-on-surface
+        : root.selected ? OxideTheme.colors.primary
+        : OxideTheme.colors.on-surface-variant;
+
+    width: OxideSpacing.min-target;
+    height: OxideSpacing.min-target;
+
+    accessible-role: button;
+    accessible-label: root.description;
+    accessible-enabled: root.enabled;
+    accessible-checked: root.selected;
+    accessible-action-default => {
+        if (root.enabled) {
+            root.clicked();
+        }
+    }
+
+    container := Rectangle {
+        width: 40px;
+        height: 40px;
+        border-radius: OxideShape.full;
+        background: root.container-color;
+        border-width: root.variant == OxideIconButtonVariant.outlined && !root.selected ? 1px : 0px;
+        border-color: OxideTheme.colors.outline-variant;
+
+        animate background { duration: OxideMotion.medium; easing: cubic-bezier(0.2, 0, 0, 1); }
+
+        OxideStateLayer {
+            border-radius: parent.border-radius;
+            tint: root.content-color;
+            hovered: touch.has-hover;
+            pressed: touch.pressed;
+            focused: fs.has-focus;
+            enabled: root.enabled;
+        }
+
+        Image {
+            source: root.icon;
+            colorize: root.content-color;
+            width: 24px;
+            height: 24px;
+            image-fit: contain;
+        }
+
+        OxideFocusRing {
+            active: fs.has-focus;
+            radius: OxideShape.full;
+        }
+    }
+
+    fs := FocusScope {
+        enabled: root.enabled;
+        focus-on-click: false;
+
+        key-pressed(event) => {
+            if (event.text == " " || event.text == Key.Return) {
+                root.clicked();
+                return accept;
+            }
+            reject
+        }
+
+        touch := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: pointer;
+            clicked => {
+                root.clicked();
+            }
+        }
+    }
+}

@@ -1,0 +1,37 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideMotion, OxideState } from "../tokens/motion.slint";
+
+// M3 state layer: a translucent overlay tinted with the content color.
+export component OxideStateLayer inherits Rectangle {
+    in property <color> tint: OxideTheme.colors.on-surface;
+    in property <bool> hovered;
+    in property <bool> pressed;
+    in property <bool> focused;
+    in property <bool> enabled: true;
+
+    background: !root.enabled ? transparent
+        : root.tint.with-alpha(root.pressed ? OxideState.pressed
+            : root.focused ? OxideState.focus
+            : root.hovered ? OxideState.hover : 0.0);
+
+    animate background { duration: OxideMotion.short; easing: cubic-bezier(0.2, 0, 0, 1); }
+}
+
+// M3 focus indicator: 3dp ring in `secondary`, drawn 2dp outside the component.
+export component OxideFocusRing {
+    in property <bool> active;
+    in property <length> radius;
+
+    Rectangle {
+        x: -5px;
+        y: -5px;
+        width: root.width + 10px;
+        height: root.height + 10px;
+        border-radius: root.radius + 5px;
+        border-width: 3px;
+        border-color: OxideTheme.colors.secondary;
+        opacity: root.active ? 1.0 : 0.0;
+
+        animate opacity { duration: OxideMotion.short; }
+    }
+}

@@ -1,0 +1,76 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideMotion } from "../tokens/motion.slint";
+
+// Right-aligned primary/secondary readout. The primary line shrinks to fit its width.
+export component OxideDisplay {
+    in property <string> primary;
+    in property <string> secondary;
+    in property <string> caption;
+    in property <string> placeholder: "0";
+    in property <bool> error;
+    in property <length> max-font-size: OxideType.display-large.size;
+    in property <length> min-font-size: OxideType.headline-small.size;
+    in property <length> secondary-font-size: OxideType.headline-small.size;
+
+    property <int> chars: max(1, (root.primary == "" ? root.placeholder : root.primary).character-count);
+    property <length> available: root.width - 2 * OxideSpacing.lg;
+    property <length> fitted: max(root.min-font-size, min(root.max-font-size, root.available / (root.chars * 0.6)));
+
+    min-height: root.min-font-size * 2.6;
+
+    accessible-role: text;
+    accessible-label: (root.primary == "" ? root.placeholder : root.primary) + (root.secondary == "" ? "" : ", " + root.secondary);
+
+    VerticalLayout {
+        padding: OxideSpacing.lg;
+        spacing: OxideSpacing.xs;
+        alignment: end;
+
+        if root.caption != "": Text {
+            text: root.caption;
+            font-size: OxideType.label-medium.size;
+            font-weight: OxideType.label-medium.weight;
+            color: OxideTheme.colors.on-surface-variant;
+            horizontal-alignment: left;
+        }
+
+        // Explicit horizontal constraints, so the fitted font size can't feed back into the width.
+        Rectangle {
+            height: root.max-font-size * 1.3;
+            min-width: 0px;
+            preferred-width: 0px;
+            max-width: 100000px;
+            horizontal-stretch: 1;
+
+            Text {
+                x: 0px;
+                min-width: parent.width;
+                preferred-width: parent.width;
+                max-width: parent.width;
+                height: parent.height;
+                text: root.primary == "" ? root.placeholder : root.primary;
+                font-size: root.fitted;
+                font-family: OxideType.family;
+                color: OxideTheme.colors.on-surface;
+                horizontal-alignment: right;
+                vertical-alignment: bottom;
+                wrap: no-wrap;
+                overflow: elide;
+
+                animate font-size { duration: OxideMotion.short; easing: cubic-bezier(0.2, 0, 0, 1); }
+            }
+        }
+
+        Text {
+            text: root.secondary;
+            font-size: root.secondary-font-size;
+            color: root.error ? OxideTheme.colors.error : OxideTheme.colors.on-surface-variant;
+            horizontal-alignment: right;
+            wrap: no-wrap;
+            overflow: elide;
+            min-height: root.secondary-font-size * 1.4;
+        }
+    }
+}

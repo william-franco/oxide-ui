@@ -1,0 +1,30 @@
+// Material 3 type scale.
+
+export struct OxideTextStyle {
+    size: length,
+    weight: int,
+    line-height: length,
+    letter-spacing: length,
+}
+
+export global OxideType {
+    // Empty string means the platform default sans-serif family.
+    in-out property <string> family: "";
+    in-out property <string> mono-family: "monospace";
+
+    out property <OxideTextStyle> display-large: { size: 57px, weight: 400, line-height: 64px, letter-spacing: -0.25px };
+    out property <OxideTextStyle> display-medium: { size: 45px, weight: 400, line-height: 52px, letter-spacing: 0px };
+    out property <OxideTextStyle> display-small: { size: 36px, weight: 400, line-height: 44px, letter-spacing: 0px };
+    out property <OxideTextStyle> headline-large: { size: 32px, weight: 400, line-height: 40px, letter-spacing: 0px };
+    out property <OxideTextStyle> headline-medium: { size: 28px, weight: 400, line-height: 36px, letter-spacing: 0px };
+    out property <OxideTextStyle> headline-small: { size: 24px, weight: 400, line-height: 32px, letter-spacing: 0px };
+    out property <OxideTextStyle> title-large: { size: 22px, weight: 400, line-height: 28px, letter-spacing: 0px };
+    out property <OxideTextStyle> title-medium: { size: 16px, weight: 500, line-height: 24px, letter-spacing: 0.15px };
+    out property <OxideTextStyle> title-small: { size: 14px, weight: 500, line-height: 20px, letter-spacing: 0.1px };
+    out property <OxideTextStyle> body-large: { size: 16px, weight: 400, line-height: 24px, letter-spacing: 0.5px };
+    out property <OxideTextStyle> body-medium: { size: 14px, weight: 400, line-height: 20px, letter-spacing: 0.25px };
+    out property <OxideTextStyle> body-small: { size: 12px, weight: 400, line-height: 16px, letter-spacing: 0.4px };
+    out property <OxideTextStyle> label-large: { size: 14px, weight: 500, line-height: 20px, letter-spacing: 0.1px };
+    out property <OxideTextStyle> label-medium: { size: 12px, weight: 500, line-height: 16px, letter-spacing: 0.5px };
+    out property <OxideTextStyle> label-small: { size: 11px, weight: 500, line-height: 16px, letter-spacing: 0.5px };
+}

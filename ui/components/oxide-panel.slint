@@ -1,0 +1,66 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideElevation, OxideShadow } from "../tokens/elevation.slint";
+import { OxideMotion } from "../tokens/motion.slint";
+
+export enum OxideSurfaceTone {
+    surface,
+    lowest,
+    low,
+    container,
+    high,
+    highest,
+}
+
+// Elevated M3 surface. Children are laid out by the caller.
+export component OxidePanel inherits Rectangle {
+    in property <OxideSurfaceTone> tone: OxideSurfaceTone.container;
+    in property <int> level: 0;
+    in property <length> radius: OxideShape.large;
+
+    property <OxideShadow> shadow: OxideElevation.level(root.level);
+
+    border-radius: root.radius;
+    background: root.tone == OxideSurfaceTone.surface ? OxideTheme.colors.surface
+        : root.tone == OxideSurfaceTone.lowest ? OxideTheme.colors.surface-container-lowest
+        : root.tone == OxideSurfaceTone.low ? OxideTheme.colors.surface-container-low
+        : root.tone == OxideSurfaceTone.high ? OxideTheme.colors.surface-container-high
+        : root.tone == OxideSurfaceTone.highest ? OxideTheme.colors.surface-container-highest
+        : OxideTheme.colors.surface-container;
+    drop-shadow-blur: root.shadow.blur;
+    drop-shadow-offset-y: root.shadow.offset-y;
+    drop-shadow-color: OxideTheme.colors.shadow.with-alpha(root.shadow.opacity);
+
+    animate background { duration: OxideMotion.medium; easing: cubic-bezier(0.2, 0, 0, 1); }
+}
+
+// Modal scrim (32% M3 scrim color). Emits `dismissed` when clicked.
+export component OxideScrim inherits Rectangle {
+    in property <bool> shown;
+    callback dismissed;
+
+    background: OxideTheme.colors.scrim.with-alpha(root.shown ? 0.32 : 0.0);
+    visible: self.background.alpha > 0;
+
+    animate background { duration: OxideMotion.medium; easing: cubic-bezier(0.2, 0, 0, 1); }
+
+    TouchArea {
+        enabled: root.shown;
+        clicked => {
+            root.dismissed();
+        }
+    }
+}
+
+export component OxideDivider inherits Rectangle {
+    in property <bool> vertical;
+    min-width: 1px;
+    min-height: 1px;
+    horizontal-stretch: root.vertical ? 0 : 1;
+    vertical-stretch: root.vertical ? 1 : 0;
+    preferred-width: root.vertical ? 1px : 0px;
+    preferred-height: root.vertical ? 0px : 1px;
+    max-width: root.vertical ? 1px : 100000px;
+    max-height: root.vertical ? 100000px : 1px;
+    background: OxideTheme.colors.outline-variant;
+}
