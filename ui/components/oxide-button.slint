@@ -28,6 +28,7 @@ export component OxideButton {
     in property <int> font-weight: OxideType.label-large.weight;
     in property <string> font-family: OxideType.family;
     in property <length> icon-size: 18px;
+    in property <length> horizontal-padding: OxideSpacing.xl;
     in property <length> radius: OxideShape.full;
     in property <length> pressed-radius: root.radius;
     out property <bool> has-focus: fs.has-focus;
@@ -95,8 +96,8 @@ export component OxideButton {
         }
 
         HorizontalLayout {
-            padding-left: root.has-icon && root.text != "" ? OxideSpacing.lg : OxideSpacing.xl;
-            padding-right: OxideSpacing.xl;
+            padding-left: root.has-icon && root.text != "" ? min(root.horizontal-padding, OxideSpacing.lg) : root.horizontal-padding;
+            padding-right: root.horizontal-padding;
             spacing: OxideSpacing.sm;
             alignment: center;
 
