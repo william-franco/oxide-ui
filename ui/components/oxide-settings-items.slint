@@ -42,19 +42,21 @@ export component OxideSwitchItem inherits Rectangle {
     }
 
     VerticalLayout {
-        alignment: center;
-
         HorizontalLayout {
             padding-left: OxideSpacing.lg;
             padding-right: OxideSpacing.lg;
             spacing: OxideSpacing.md;
 
-            if root.icon.width > 0: Image {
-                source: root.icon;
-                colorize: OxideTheme.colors.on-surface-variant;
-                width: 24px;
-                height: 24px;
-                image-fit: contain;
+            if root.icon.width > 0: VerticalLayout {
+                alignment: center;
+
+                Image {
+                    source: root.icon;
+                    colorize: OxideTheme.colors.on-surface-variant;
+                    width: 24px;
+                    height: 24px;
+                    image-fit: contain;
+                }
             }
 
             VerticalLayout {
@@ -79,11 +81,15 @@ export component OxideSwitchItem inherits Rectangle {
                 }
             }
 
-            OxideSwitch {
-                checked <=> root.checked;
-                enabled: root.enabled;
-                toggled(v) => {
-                    root.toggled(v);
+            VerticalLayout {
+                alignment: center;
+
+                OxideSwitch {
+                    checked <=> root.checked;
+                    enabled: root.enabled;
+                    toggled(v) => {
+                        root.toggled(v);
+                    }
                 }
             }
         }
@@ -120,19 +126,21 @@ export component OxideActionItem inherits Rectangle {
     }
 
     VerticalLayout {
-        alignment: center;
-
         HorizontalLayout {
             padding-left: OxideSpacing.lg;
             padding-right: OxideSpacing.lg;
             spacing: OxideSpacing.md;
 
-            if root.icon.width > 0: Image {
-                source: root.icon;
-                colorize: OxideTheme.colors.on-surface-variant;
-                width: 24px;
-                height: 24px;
-                image-fit: contain;
+            if root.icon.width > 0: VerticalLayout {
+                alignment: center;
+
+                Image {
+                    source: root.icon;
+                    colorize: OxideTheme.colors.on-surface-variant;
+                    width: 24px;
+                    height: 24px;
+                    image-fit: contain;
+                }
             }
 
             VerticalLayout {
