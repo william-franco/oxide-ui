@@ -1,0 +1,94 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideMotion } from "../tokens/motion.slint";
+
+// M3 outlined text field. Label sits above the box; supporting text (or error text) below.
+export component OxideTextField inherits Rectangle {
+    in-out property <string> text;
+    in property <string> label;
+    in property <string> placeholder;
+    in property <string> supporting;
+    in property <bool> error;
+    in property <bool> multiline;
+    in property <bool> enabled: true;
+    in property <string> description: root.label;
+
+    out property <bool> has-focus: input.has-focus;
+    callback accepted(text: string);
+
+    background: transparent;
+    min-height: 56px;
+
+    accessible-role: text-input;
+    accessible-label: root.description;
+    accessible-enabled: root.enabled;
+
+    VerticalLayout {
+        spacing: OxideSpacing.xxs;
+
+        if root.label != "": Text {
+            text: root.label;
+            font-size: OxideType.label-medium.size;
+            font-weight: OxideType.label-medium.weight;
+            color: root.error ? OxideTheme.colors.error
+                : input.has-focus ? OxideTheme.colors.primary
+                : OxideTheme.colors.on-surface-variant;
+        }
+
+        Rectangle {
+            min-height: root.multiline ? 112px : 56px;
+            border-radius: OxideShape.extra-small;
+            background: root.enabled ? transparent : OxideTheme.colors.on-surface.with-alpha(0.04);
+            border-width: input.has-focus || root.error ? 2px : 1px;
+            border-color: root.error ? OxideTheme.colors.error
+                : input.has-focus ? OxideTheme.colors.primary
+                : OxideTheme.colors.outline;
+
+            animate border-color { duration: OxideMotion.short; }
+
+            HorizontalLayout {
+                padding-left: OxideSpacing.lg;
+                padding-right: OxideSpacing.lg;
+                padding-top: OxideSpacing.md;
+                padding-bottom: OxideSpacing.md;
+
+                Rectangle {
+                    input := TextInput {
+                        text <=> root.text;
+                        font-size: OxideType.body-large.size;
+                        font-family: OxideType.family;
+                        color: root.enabled ? OxideTheme.colors.on-surface : OxideTheme.colors.on-surface.with-alpha(0.38);
+                        selection-background-color: OxideTheme.colors.primary.with-alpha(0.3);
+                        single-line: !root.multiline;
+                        wrap: root.multiline ? word-wrap : no-wrap;
+                        enabled: root.enabled;
+                        vertical-alignment: root.multiline ? top : center;
+                        accepted => {
+                            root.accepted(self.text);
+                        }
+                    }
+
+                    if root.text == "" && !input.has-focus: Text {
+                        text: root.placeholder;
+                        font-size: OxideType.body-large.size;
+                        color: OxideTheme.colors.on-surface-variant;
+                        vertical-alignment: center;
+                        overflow: elide;
+                        width: parent.width;
+                        height: parent.height;
+                    }
+                }
+            }
+        }
+
+        if root.supporting != "": Text {
+            text: root.supporting;
+            font-size: OxideType.body-small.size;
+            font-weight: OxideType.body-small.weight;
+            color: root.error ? OxideTheme.colors.error : OxideTheme.colors.on-surface-variant;
+            wrap: word-wrap;
+        }
+    }
+}

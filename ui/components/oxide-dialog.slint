@@ -1,0 +1,112 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideElevation } from "../tokens/elevation.slint";
+import { OxideMotion } from "../tokens/motion.slint";
+
+// M3 basic dialog: scrim, surface with headline, content (@children) and actions.
+// Closes on Esc or scrim click by emitting `dismissed`; the caller decides what to do.
+// Put action buttons inside the children, e.g. a HorizontalLayout aligned to the end.
+export component OxideDialog inherits Rectangle {
+    in property <bool> shown;
+    in property <string> headline;
+    in property <length> dialog-max-width: 560px;
+    in property <bool> fullscreen;
+    callback dismissed;
+
+    property <length> panel-width: root.fullscreen ? root.width : min(root.width - 2 * OxideSpacing.xl, root.dialog-max-width);
+    property <length> panel-height: root.fullscreen ? root.height : min(root.height - 2 * OxideSpacing.xl, 640px);
+
+    visible: root.shown;
+    background: transparent;
+
+
+    // Scrim: clicking outside the panel dismisses the dialog.
+    Rectangle {
+        background: OxideTheme.colors.scrim.with-alpha(0.32);
+        TouchArea {
+            clicked => {
+                root.dismissed();
+            }
+        }
+    }
+
+    panel := Rectangle {
+        width: root.panel-width;
+        height: root.panel-height;
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+        border-radius: root.fullscreen ? 0px : OxideShape.extra-large;
+        background: OxideTheme.colors.surface-container-high;
+        drop-shadow-blur: OxideElevation.level(3).blur;
+        drop-shadow-offset-y: OxideElevation.level(3).offset-y;
+        drop-shadow-color: OxideTheme.colors.shadow.with-alpha(OxideElevation.level(3).opacity);
+
+        VerticalLayout {
+            padding: OxideSpacing.xxl;
+            spacing: OxideSpacing.lg;
+
+            Text {
+                text: root.headline;
+                font-size: OxideType.headline-small.size;
+                font-weight: OxideType.headline-small.weight;
+                font-family: OxideType.family;
+                color: OxideTheme.colors.on-surface;
+                wrap: word-wrap;
+            }
+
+            @children
+        }
+    }
+
+    // Esc to dismiss.
+    FocusScope {
+        enabled: root.shown;
+        key-pressed(event) => {
+            if (event.text == Key.Escape) {
+                root.dismissed();
+                return accept;
+            }
+            reject
+        }
+    }
+}
+
+// Helper for dialog action rows: a text button label with the M3 "text" look.
+export component OxideDialogAction inherits Rectangle {
+    in property <string> text;
+    in property <bool> primary;
+    callback clicked;
+
+    height: OxideSpacing.min-target;
+    min-width: 64px;
+    border-radius: OxideShape.full;
+    background: transparent;
+
+    accessible-role: button;
+    accessible-label: root.text;
+
+    Rectangle {
+        border-radius: OxideShape.full;
+        background: touch.has-hover ? OxideTheme.colors.primary.with-alpha(0.08) : transparent;
+        Text {
+            text: root.text;
+            font-size: OxideType.label-large.size;
+            font-weight: OxideType.label-large.weight;
+            font-family: OxideType.family;
+            color: root.primary ? OxideTheme.colors.primary : OxideTheme.colors.on-surface-variant;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            width: parent.width;
+            height: parent.height;
+        }
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => {
+            root.clicked();
+        }
+    }
+}

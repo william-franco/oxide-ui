@@ -1,0 +1,56 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideElevation } from "../tokens/elevation.slint";
+import { OxideMotion } from "../tokens/motion.slint";
+
+// M3 side sheet. `modal: false` keeps it docked beside the content (it is always shown);
+// `modal: true` overlays it with a scrim and slides it in/out according to `shown`.
+export component OxideSideSheet inherits Rectangle {
+    in property <bool> shown: true;
+    in property <bool> modal;
+    in property <length> sheet-width: 360px;
+    callback dismissed;
+
+    background: transparent;
+
+    if root.modal: Rectangle {
+        background: OxideTheme.colors.scrim.with-alpha(root.shown ? 0.32 : 0.0);
+        visible: root.shown;
+
+        animate background { duration: OxideMotion.medium; easing: cubic-bezier(0.2, 0, 0, 1); }
+
+        TouchArea {
+            enabled: root.shown;
+            clicked => {
+                root.dismissed();
+            }
+        }
+    }
+
+    panel := Rectangle {
+        width: min(root.sheet-width, root.width);
+        height: root.height;
+        x: root.modal ? (root.shown ? root.width - self.width : root.width) : root.width - self.width;
+        background: OxideTheme.colors.surface-container-low;
+        border-radius: root.modal ? OxideShape.large : 0px;
+        drop-shadow-blur: root.modal ? OxideElevation.level(3).blur : 0px;
+        drop-shadow-offset-y: root.modal ? OxideElevation.level(3).offset-y : 0px;
+        drop-shadow-color: OxideTheme.colors.shadow.with-alpha(root.modal ? OxideElevation.level(3).opacity : 0.0);
+
+        animate x { duration: OxideMotion.long; easing: cubic-bezier(0.2, 0, 0, 1); }
+
+        @children
+    }
+
+    // Esc dismisses a modal sheet.
+    FocusScope {
+        enabled: root.modal && root.shown;
+        key-pressed(event) => {
+            if (event.text == Key.Escape) {
+                root.dismissed();
+                return accept;
+            }
+            reject
+        }
+    }
+}

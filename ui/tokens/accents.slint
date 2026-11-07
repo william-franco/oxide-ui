@@ -1,0 +1,28 @@
+import { OxideTheme } from "../theme.slint";
+
+// Eight harmonized accent hues for categories. Apps refer to them by index,
+// so no color is hardcoded in app code. Index wraps with modulo 8.
+export global OxideAccents {
+    out property <int> count: 8;
+
+    out property <[color]> light-containers: [
+        #ffdbcf, #ffe3a8, #cdeccb, #c9e8f5, #e1d4ff, #ffd6e8, #d3eedf, #e6e4d6,
+    ];
+    out property <[color]> light-on-containers: [
+        #380d00, #3a2c00, #0b3a14, #002b3d, #2a0f5c, #4a0a2c, #0a3a25, #2b2a1c,
+    ];
+    out property <[color]> dark-containers: [
+        #7b2e0d, #5a4500, #1e5227, #0f4a60, #47287f, #6b1d44, #1b5239, #4a4730,
+    ];
+    out property <[color]> dark-on-containers: [
+        #ffdbcf, #ffe3a8, #cdeccb, #c9e8f5, #e1d4ff, #ffd6e8, #d3eedf, #e6e4d6,
+    ];
+
+    public pure function container(index: int) -> color {
+        OxideTheme.dark ? dark-containers[mod(index, 8)] : light-containers[mod(index, 8)]
+    }
+
+    public pure function on-container(index: int) -> color {
+        OxideTheme.dark ? dark-on-containers[mod(index, 8)] : light-on-containers[mod(index, 8)]
+    }
+}

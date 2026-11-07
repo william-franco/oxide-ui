@@ -1,0 +1,153 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideIcons } from "oxide-icon.slint";
+import { OxideStateLayer } from "oxide-state-layer.slint";
+
+// Private: one hour or minute column with up/down arrows.
+component OxideTimeStepper inherits Rectangle {
+    in property <string> value;
+    in property <bool> enabled: true;
+    callback up();
+    callback down();
+
+    width: 96px;
+    height: 200px;
+    border-radius: OxideShape.large;
+    background: OxideTheme.colors.surface-container-highest;
+
+    VerticalLayout {
+        alignment: center;
+        spacing: OxideSpacing.xs;
+
+        Rectangle {
+            height: OxideSpacing.min-target;
+            border-radius: OxideShape.full;
+
+            OxideStateLayer {
+                border-radius: parent.border-radius;
+                tint: OxideTheme.colors.on-surface-variant;
+                hovered: up-touch.has-hover;
+                pressed: up-touch.pressed;
+                enabled: root.enabled;
+            }
+
+            Image {
+                source: OxideIcons.expand-less;
+                colorize: OxideTheme.colors.on-surface-variant;
+                width: 24px;
+                height: 24px;
+                image-fit: contain;
+            }
+
+            up-touch := TouchArea {
+                enabled: root.enabled;
+                mouse-cursor: pointer;
+                clicked => {
+                    root.up();
+                }
+            }
+        }
+
+        Text {
+            text: root.value;
+            font-size: OxideType.display-small.size;
+            font-weight: OxideType.display-small.weight;
+            font-family: OxideType.family;
+            color: root.enabled ? OxideTheme.colors.on-surface : OxideTheme.colors.on-surface.with-alpha(0.38);
+            horizontal-alignment: center;
+        }
+
+        Rectangle {
+            height: OxideSpacing.min-target;
+            border-radius: OxideShape.full;
+
+            OxideStateLayer {
+                border-radius: parent.border-radius;
+                tint: OxideTheme.colors.on-surface-variant;
+                hovered: down-touch.has-hover;
+                pressed: down-touch.pressed;
+                enabled: root.enabled;
+            }
+
+            Image {
+                source: OxideIcons.expand-more;
+                colorize: OxideTheme.colors.on-surface-variant;
+                width: 24px;
+                height: 24px;
+                image-fit: contain;
+            }
+
+            down-touch := TouchArea {
+                enabled: root.enabled;
+                mouse-cursor: pointer;
+                clicked => {
+                    root.down();
+                }
+            }
+        }
+    }
+}
+
+// Hour/minute stepper. Arrows step hours by 1 (wrapping 0-23) and minutes by `minute-step` (wrapping 0-59).
+// `hour` and `minute` are the source of truth; `changed` fires after each step.
+export component OxideTimePicker inherits Rectangle {
+    in-out property <int> hour: 9;
+    in-out property <int> minute: 0;
+    in property <int> minute-step: 15;
+    in property <bool> enabled: true;
+    callback changed(hour: int, minute: int);
+
+    background: transparent;
+    preferred-height: 200px;
+
+
+    function pad(value: int) -> string {
+        value < 10 ? "0\{value}" : "\{value}"
+    }
+
+    function step-hour(delta: int) {
+        root.hour = mod(root.hour + delta + 24, 24);
+        root.changed(root.hour, root.minute);
+    }
+
+    function step-minute(delta: int) {
+        root.minute = mod(root.minute + delta * root.minute-step + 60, 60);
+        root.changed(root.hour, root.minute);
+    }
+
+    HorizontalLayout {
+        spacing: OxideSpacing.md;
+        alignment: center;
+
+        OxideTimeStepper {
+            value: root.pad(root.hour);
+            enabled: root.enabled;
+            up => {
+                root.step-hour(1);
+            }
+            down => {
+                root.step-hour(-1);
+            }
+        }
+
+        Text {
+            text: ":";
+            font-size: OxideType.display-small.size;
+            color: OxideTheme.colors.on-surface;
+            vertical-alignment: center;
+        }
+
+        OxideTimeStepper {
+            value: root.pad(root.minute);
+            enabled: root.enabled;
+            up => {
+                root.step-minute(1);
+            }
+            down => {
+                root.step-minute(-1);
+            }
+        }
+    }
+}

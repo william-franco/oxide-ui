@@ -1,0 +1,91 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideIcons } from "oxide-icon.slint";
+import { OxideStateLayer } from "oxide-state-layer.slint";
+
+// M3 search bar: pill-shaped field with leading search icon and trailing clear button.
+export component OxideSearchField inherits Rectangle {
+    in-out property <string> text;
+    in property <string> placeholder: "Pesquisar";
+    callback submitted(text: string);
+    callback cleared();
+
+    out property <bool> has-focus: input.has-focus;
+
+    height: 56px;
+    border-radius: OxideShape.full;
+    background: OxideTheme.colors.surface-container-high;
+
+    accessible-role: text-input;
+    accessible-label: root.placeholder;
+
+    HorizontalLayout {
+        padding-left: OxideSpacing.lg;
+        padding-right: OxideSpacing.sm;
+        spacing: OxideSpacing.md;
+        alignment: center;
+
+        Image {
+            source: OxideIcons.search;
+            colorize: OxideTheme.colors.on-surface-variant;
+            width: 24px;
+            height: 24px;
+            image-fit: contain;
+        }
+
+        Rectangle {
+            input := TextInput {
+                text <=> root.text;
+                font-size: OxideType.body-large.size;
+                font-family: OxideType.family;
+                color: OxideTheme.colors.on-surface;
+                selection-background-color: OxideTheme.colors.primary.with-alpha(0.3);
+                single-line: true;
+                vertical-alignment: center;
+                accepted => {
+                    root.submitted(self.text);
+                }
+            }
+
+            if root.text == "" && !input.has-focus: Text {
+                text: root.placeholder;
+                font-size: OxideType.body-large.size;
+                color: OxideTheme.colors.on-surface-variant;
+                vertical-alignment: center;
+                width: parent.width;
+                height: parent.height;
+            }
+        }
+
+        if root.text != "": Rectangle {
+            width: 40px;
+            height: 40px;
+            border-radius: OxideShape.full;
+
+            OxideStateLayer {
+                border-radius: parent.border-radius;
+                tint: OxideTheme.colors.on-surface-variant;
+                hovered: clear-touch.has-hover;
+                pressed: clear-touch.pressed;
+            }
+
+            Image {
+                source: OxideIcons.close;
+                colorize: OxideTheme.colors.on-surface-variant;
+                width: 24px;
+                height: 24px;
+                image-fit: contain;
+            }
+
+            clear-touch := TouchArea {
+                mouse-cursor: pointer;
+                clicked => {
+                    root.text = "";
+                    root.cleared();
+                }
+            }
+        }
+    }
+}

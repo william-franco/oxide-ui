@@ -1,0 +1,103 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideElevation } from "../tokens/elevation.slint";
+import { OxideMotion } from "../tokens/motion.slint";
+import { OxideStateLayer, OxideFocusRing } from "oxide-state-layer.slint";
+
+// M3 floating action button. Without `text` it is a 56px square; with `text` it is extended (56px tall).
+export component OxideFab inherits Rectangle {
+    in property <image> icon;
+    in property <string> text;
+    in property <bool> small;
+    in property <string> description: root.text;
+    in property <bool> enabled: true;
+    out property <bool> has-focus: fs.has-focus;
+    callback clicked;
+
+    property <length> size: root.small ? 40px : 56px;
+    property <int> elevation: touch.has-hover && !touch.pressed ? 2 : 1;
+
+    height: root.size;
+    width: root.text == "" ? root.size : row.preferred-width;
+    background: transparent;
+
+    accessible-role: button;
+    accessible-label: root.description;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if (root.enabled) {
+            root.clicked();
+        }
+    }
+
+    body := Rectangle {
+        border-radius: OxideShape.large;
+        background: root.enabled ? OxideTheme.colors.primary-container : OxideTheme.colors.on-surface.with-alpha(0.12);
+        drop-shadow-blur: OxideElevation.level(root.elevation).blur;
+        drop-shadow-offset-y: OxideElevation.level(root.elevation).offset-y;
+        drop-shadow-color: OxideTheme.colors.shadow.with-alpha(OxideElevation.level(root.elevation).opacity);
+
+        animate drop-shadow-blur, drop-shadow-offset-y { duration: OxideMotion.short; }
+
+        OxideStateLayer {
+            border-radius: parent.border-radius;
+            tint: OxideTheme.colors.on-primary-container;
+            hovered: touch.has-hover;
+            pressed: touch.pressed;
+            focused: fs.has-focus;
+            enabled: root.enabled;
+        }
+
+        row := HorizontalLayout {
+            padding-left: root.text == "" ? 0px : OxideSpacing.lg;
+            padding-right: root.text == "" ? 0px : OxideSpacing.xl;
+            spacing: OxideSpacing.md;
+            alignment: center;
+
+            Image {
+                source: root.icon;
+                colorize: OxideTheme.colors.on-primary-container;
+                width: root.small ? 24px : 24px;
+                height: 24px;
+                image-fit: contain;
+            }
+
+            if root.text != "": Text {
+                text: root.text;
+                font-size: OxideType.label-large.size;
+                font-weight: OxideType.label-large.weight;
+                font-family: OxideType.family;
+                color: OxideTheme.colors.on-primary-container;
+                vertical-alignment: center;
+            }
+        }
+    }
+
+    OxideFocusRing {
+        active: fs.has-focus;
+        radius: OxideShape.large;
+    }
+
+    fs := FocusScope {
+        enabled: root.enabled;
+        focus-on-click: false;
+
+        key-pressed(event) => {
+            if (event.text == " " || event.text == Key.Return) {
+                root.clicked();
+                return accept;
+            }
+            reject
+        }
+
+        touch := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: pointer;
+            clicked => {
+                root.clicked();
+            }
+        }
+    }
+}

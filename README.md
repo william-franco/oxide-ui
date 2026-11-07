@@ -11,6 +11,21 @@ A crate não tem dependências de runtime: ela distribui apenas arquivos `.slint
 - `ui/components/`: `OxideButton`, `OxideIconButton`, `OxideDisplay`, `OxidePanel`, `OxideScrim`, `OxideDivider`, `OxideListItem`, `OxideSegmented`, `OxideIcon`/`OxideIcons`, `OxideStateLayer`, `OxideFocusRing`.
 - `ui/oxide.slint`: ponto de entrada único.
 
+### Componentes de formulário e navegação
+
+- `OxideTextField` (campo de texto com rótulo, apoio, erro e várias linhas) e `OxideSearchField` (busca em pílula com limpar).
+- `OxideChip` com variantes `OxideChipVariant.filter | assist | input` e cor de categoria por índice.
+- `OxideCheckbox` e `OxideSwitch`.
+- `OxideSelect` (dropdown com popup, recebe `[string]`).
+- `OxideDatePicker` (grade do mês) com `OxideCalendarMath` (dias do mês, dia da semana, navegação entre meses, funções puras).
+- `OxideTimePicker` (hora e minuto com setas).
+- `OxideDialog` e `OxideDialogAction` (scrim, Esc e clique fora emitem `dismissed`).
+- `OxideSideSheet` (fixo ou modal, com `shown`).
+- `OxideFab` (com ou sem texto) e `OxideSnackbar` (controlado por `shown`, sem timeout interno).
+- `OxideAccents`: 8 cores de acento (containers claro e escuro) indexadas por `int`.
+
+Os componentes são independentes de domínio. O app decide o que cada um representa.
+
 ## Uso em um app
 
 ```toml

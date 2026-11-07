@@ -1,0 +1,106 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideElevation } from "../tokens/elevation.slint";
+import { OxideIcons } from "oxide-icon.slint";
+
+// M3 exposed dropdown. Options are shown in a popup anchored below the field.
+export component OxideSelect inherits Rectangle {
+    in property <[string]> options;
+    in-out property <int> selected: -1;
+    in property <string> label;
+    in property <string> placeholder: "Selecionar";
+    in property <bool> enabled: true;
+    callback selection-changed(index: int);
+
+    property <length> row-height: 48px;
+    property <length> popup-height: min(root.options.length * root.row-height, 320px) + 2 * OxideSpacing.xs;
+
+    height: 56px;
+    background: transparent;
+    border-radius: OxideShape.extra-small;
+    border-width: 1px;
+    border-color: OxideTheme.colors.outline;
+
+    accessible-role: combobox;
+    accessible-label: root.label;
+    accessible-enabled: root.enabled;
+
+    Text {
+        x: OxideSpacing.lg;
+        width: parent.width - 2 * OxideSpacing.lg - 32px;
+        height: parent.height;
+        text: root.selected >= 0 && root.selected < root.options.length ? root.options[root.selected] : root.placeholder;
+        font-size: OxideType.body-large.size;
+        font-family: OxideType.family;
+        color: root.selected >= 0 ? OxideTheme.colors.on-surface : OxideTheme.colors.on-surface-variant;
+        vertical-alignment: center;
+        overflow: elide;
+    }
+
+    Image {
+        x: parent.width - self.width - OxideSpacing.md;
+        y: (parent.height - self.height) / 2;
+        source: OxideIcons.expand-more;
+        colorize: OxideTheme.colors.on-surface-variant;
+        width: 24px;
+        height: 24px;
+        image-fit: contain;
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => {
+            popup.show();
+        }
+    }
+
+    popup := PopupWindow {
+        x: 0;
+        y: root.height + OxideSpacing.xxs;
+        width: root.width;
+        height: root.popup-height;
+        close-policy: close-on-click-outside;
+
+        Rectangle {
+            background: OxideTheme.colors.surface-container;
+            border-radius: OxideShape.medium;
+            drop-shadow-blur: OxideElevation.level(2).blur;
+            drop-shadow-offset-y: OxideElevation.level(2).offset-y;
+            drop-shadow-color: OxideTheme.colors.shadow.with-alpha(OxideElevation.level(2).opacity);
+
+            VerticalLayout {
+                padding: OxideSpacing.xs;
+
+                for option[index] in root.options: Rectangle {
+                    height: root.row-height;
+                    border-radius: OxideShape.small;
+                    background: index == root.selected ? OxideTheme.colors.secondary-container : transparent;
+
+                    Text {
+                        x: OxideSpacing.lg;
+                        width: parent.width - 2 * OxideSpacing.lg;
+                        height: parent.height;
+                        text: option;
+                        font-size: OxideType.body-large.size;
+                        font-family: OxideType.family;
+                        color: index == root.selected ? OxideTheme.colors.on-secondary-container : OxideTheme.colors.on-surface;
+                        vertical-alignment: center;
+                        overflow: elide;
+                    }
+
+                    option-touch := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => {
+                            root.selected = index;
+                            root.selection-changed(index);
+                            popup.close();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

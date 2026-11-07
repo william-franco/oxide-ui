@@ -1,0 +1,227 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideMotion } from "../tokens/motion.slint";
+import { OxideIcons } from "oxide-icon.slint";
+import { OxideStateLayer, OxideFocusRing } from "oxide-state-layer.slint";
+
+// Calendar math kept as pure functions so it can be reused and reasoned about in isolation.
+// Weekdays use 0 = Sunday ... 6 = Saturday.
+export global OxideCalendarMath {
+    out property <[int]> month-offsets: [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
+
+    public pure function is-leap(year: int) -> bool {
+        (mod(year, 4) == 0 && mod(year, 100) != 0) || mod(year, 400) == 0
+    }
+
+    public pure function days-in-month(year: int, month: int) -> int {
+        if (month == 2) {
+            return is-leap(year) ? 29 : 28;
+        }
+        if (month == 4 || month == 6 || month == 9 || month == 11) {
+            return 30;
+        }
+        31
+    }
+
+    // Sakamoto's method. Years before March use year - 1.
+    public pure function weekday(year: int, month: int, day: int) -> int {
+        mod(year - (month < 3 ? 1 : 0) + floor((year - (month < 3 ? 1 : 0)) / 4.0) - floor((year - (month < 3 ? 1 : 0)) / 100.0) + floor((year - (month < 3 ? 1 : 0)) / 400.0) + month-offsets[month - 1] + day, 7)
+    }
+
+    public pure function next-month-year(year: int, month: int) -> int {
+        month == 12 ? year + 1 : year
+    }
+
+    public pure function next-month(month: int) -> int {
+        mod(month, 12) + 1
+    }
+
+    public pure function prev-month-year(year: int, month: int) -> int {
+        month == 1 ? year - 1 : year
+    }
+
+    public pure function prev-month(month: int) -> int {
+        mod(month + 10, 12) + 1
+    }
+}
+
+// M3 date picker (month grid). Stateless about events: the caller owns year/month/selection.
+// Emits `selected` on a day click and `month-changed` when the visible month changes.
+export component OxideDatePicker inherits Rectangle {
+    in-out property <int> year;
+    in-out property <int> month;
+    in-out property <int> selected-year;
+    in-out property <int> selected-month;
+    in-out property <int> selected-day;
+    in property <int> today-year;
+    in property <int> today-month;
+    in property <int> today-day;
+    in property <bool> enabled: true;
+    callback selected(year: int, month: int, day: int);
+    callback month-changed(year: int, month: int);
+
+    property <int> offset: OxideCalendarMath.weekday(root.year, root.month, 1);
+    property <int> days: OxideCalendarMath.days-in-month(root.year, root.month);
+
+    background: transparent;
+    min-width: 280px;
+    preferred-height: 340px;
+
+
+    function shift(delta: int) {
+        if (delta < 0) {
+            root.year = OxideCalendarMath.prev-month-year(root.year, root.month);
+            root.month = OxideCalendarMath.prev-month(root.month);
+        } else {
+            root.year = OxideCalendarMath.next-month-year(root.year, root.month);
+            root.month = OxideCalendarMath.next-month(root.month);
+        }
+        root.month-changed(root.year, root.month);
+    }
+
+    VerticalLayout {
+        spacing: OxideSpacing.sm;
+
+        HorizontalLayout {
+            spacing: OxideSpacing.xs;
+            alignment: space-between;
+
+            Text {
+                text: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"][root.month - 1] + " \{root.year}";
+                font-size: OxideType.title-small.size;
+                font-weight: OxideType.title-small.weight;
+                font-family: OxideType.family;
+                color: OxideTheme.colors.on-surface;
+                vertical-alignment: center;
+            }
+
+            nav-prev := Rectangle {
+                width: 40px;
+                height: 40px;
+                border-radius: OxideShape.full;
+                OxideStateLayer {
+                    border-radius: parent.border-radius;
+                    tint: OxideTheme.colors.on-surface-variant;
+                    hovered: prev-touch.has-hover;
+                    pressed: prev-touch.pressed;
+                }
+                Image {
+                    source: OxideIcons.chevron-left;
+                    colorize: OxideTheme.colors.on-surface-variant;
+                    width: 24px;
+                    height: 24px;
+                    image-fit: contain;
+                }
+                prev-touch := TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => {
+                        root.shift(-1);
+                    }
+                }
+            }
+
+            nav-next := Rectangle {
+                width: 40px;
+                height: 40px;
+                border-radius: OxideShape.full;
+                OxideStateLayer {
+                    border-radius: parent.border-radius;
+                    tint: OxideTheme.colors.on-surface-variant;
+                    hovered: next-touch.has-hover;
+                    pressed: next-touch.pressed;
+                }
+                Image {
+                    source: OxideIcons.chevron-right;
+                    colorize: OxideTheme.colors.on-surface-variant;
+                    width: 24px;
+                    height: 24px;
+                    image-fit: contain;
+                }
+                next-touch := TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => {
+                        root.shift(1);
+                    }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            for name in ["D", "S", "T", "Q", "Q", "S", "S"]: Text {
+                text: name;
+                horizontal-stretch: 1;
+                horizontal-alignment: center;
+                font-size: OxideType.label-medium.size;
+                font-weight: OxideType.label-medium.weight;
+                color: OxideTheme.colors.on-surface-variant;
+            }
+        }
+
+        // 6 rows x 7 columns always, so the height does not jump between months.
+        for row in 6: HorizontalLayout {
+            spacing: 0px;
+            for col in 7: Rectangle {
+                property <int> index: row * 7 + col;
+                property <int> day-number: index - root.offset + 1;
+                property <bool> in-month: day-number >= 1 && day-number <= root.days;
+                property <bool> is-selected: in-month && root.year == root.selected-year && root.month == root.selected-month && day-number == root.selected-day;
+                property <bool> is-today: in-month && root.year == root.today-year && root.month == root.today-month && day-number == root.today-day;
+
+                horizontal-stretch: 1;
+                height: 40px;
+                accessible-role: button;
+                accessible-label: in-month ? "\{day-number}" : "";
+                accessible-enabled: in-month && root.enabled;
+
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    x: (parent.width - self.width) / 2;
+                    border-radius: OxideShape.full;
+                    background: is-selected ? OxideTheme.colors.primary
+                        : is-today ? transparent
+                        : transparent;
+                    border-width: is-today && !is-selected ? 1px : 0px;
+                    border-color: OxideTheme.colors.primary;
+
+                    animate background { duration: OxideMotion.short; }
+
+                    OxideStateLayer {
+                        border-radius: parent.border-radius;
+                        tint: OxideTheme.colors.on-surface;
+                        hovered: cell-touch.has-hover && in-month;
+                        pressed: cell-touch.pressed && in-month;
+                        enabled: in-month;
+                    }
+
+                    Text {
+                        text: in-month ? "\{day-number}" : "";
+                        font-size: OxideType.body-large.size;
+                        font-family: OxideType.family;
+                        font-weight: is-today ? 600 : 400;
+                        color: is-selected ? OxideTheme.colors.on-primary
+                            : is-today ? OxideTheme.colors.primary
+                            : OxideTheme.colors.on-surface;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        width: parent.width;
+                        height: parent.height;
+                    }
+
+                    cell-touch := TouchArea {
+                        enabled: in-month && root.enabled;
+                        mouse-cursor: pointer;
+                        clicked => {
+                            root.selected-year = root.year;
+                            root.selected-month = root.month;
+                            root.selected-day = day-number;
+                            root.selected(root.year, root.month, day-number);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

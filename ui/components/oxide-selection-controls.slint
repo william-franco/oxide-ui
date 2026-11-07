@@ -1,0 +1,203 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideMotion } from "../tokens/motion.slint";
+import { OxideIcons } from "oxide-icon.slint";
+import { OxideStateLayer, OxideFocusRing } from "oxide-state-layer.slint";
+
+// M3 checkbox with optional label. Whole row is the touch target (48px tall).
+export component OxideCheckbox inherits Rectangle {
+    in-out property <bool> checked;
+    in property <string> text;
+    in property <bool> enabled: true;
+    out property <bool> has-focus: fs.has-focus;
+    callback toggled(checked: bool);
+
+    background: transparent;
+    min-height: OxideSpacing.min-target;
+    preferred-width: row.preferred-width;
+
+    accessible-role: checkbox;
+    accessible-label: root.text;
+    accessible-checked: root.checked;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        root.flip();
+    }
+
+    function flip() {
+        if (root.enabled) {
+            root.checked = !root.checked;
+            root.toggled(root.checked);
+        }
+    }
+
+    row := HorizontalLayout {
+        padding-left: OxideSpacing.xs;
+        padding-right: OxideSpacing.sm;
+        spacing: OxideSpacing.md;
+        alignment: start;
+
+        box := Rectangle {
+            width: 18px;
+            height: 18px;
+            y: (parent.height - self.height) / 2;
+            border-radius: OxideShape.extra-small;
+            border-width: root.checked ? 0px : 2px;
+            border-color: root.enabled ? OxideTheme.colors.on-surface-variant : OxideTheme.colors.on-surface.with-alpha(0.38);
+            background: root.checked
+                ? (root.enabled ? OxideTheme.colors.primary : OxideTheme.colors.on-surface.with-alpha(0.38))
+                : transparent;
+
+            animate background { duration: OxideMotion.short; }
+
+            Image {
+                source: OxideIcons.check-small;
+                colorize: OxideTheme.colors.on-primary;
+                width: 14px;
+                height: 14px;
+                image-fit: contain;
+                opacity: root.checked ? 1.0 : 0.0;
+            }
+        }
+
+        if root.text != "": Text {
+            text: root.text;
+            font-size: OxideType.body-large.size;
+            font-family: OxideType.family;
+            color: root.enabled ? OxideTheme.colors.on-surface : OxideTheme.colors.on-surface.with-alpha(0.38);
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+
+    OxideFocusRing {
+        active: fs.has-focus;
+        radius: OxideShape.extra-small;
+        x: box.x - 5px;
+        y: row.y + box.y - 5px;
+        width: 28px;
+        height: 28px;
+    }
+
+    fs := FocusScope {
+        enabled: root.enabled;
+        focus-on-click: false;
+
+        key-pressed(event) => {
+            if (event.text == " " || event.text == Key.Return) {
+                root.flip();
+                return accept;
+            }
+            reject
+        }
+
+        touch := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: pointer;
+            clicked => {
+                root.flip();
+            }
+        }
+    }
+}
+
+// M3 switch: 52x32 track with a thumb that grows when checked.
+export component OxideSwitch inherits Rectangle {
+    in-out property <bool> checked;
+    in property <string> text;
+    in property <bool> enabled: true;
+    out property <bool> has-focus: fs.has-focus;
+    callback toggled(checked: bool);
+
+    background: transparent;
+    min-height: OxideSpacing.min-target;
+    preferred-width: row.preferred-width;
+
+    accessible-role: switch;
+    accessible-label: root.text;
+    accessible-checked: root.checked;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        root.flip();
+    }
+
+    function flip() {
+        if (root.enabled) {
+            root.checked = !root.checked;
+            root.toggled(root.checked);
+        }
+    }
+
+    row := HorizontalLayout {
+        padding-left: OxideSpacing.xs;
+        padding-right: OxideSpacing.sm;
+        spacing: OxideSpacing.md;
+        alignment: start;
+
+        track := Rectangle {
+            width: 52px;
+            height: 32px;
+            y: (parent.height - self.height) / 2;
+            border-radius: OxideShape.full;
+            background: root.checked
+                ? (root.enabled ? OxideTheme.colors.primary : OxideTheme.colors.on-surface.with-alpha(0.12))
+                : OxideTheme.colors.surface-container-highest;
+            border-width: root.checked ? 0px : 2px;
+            border-color: OxideTheme.colors.outline;
+
+            animate background { duration: OxideMotion.short; }
+
+            thumb := Rectangle {
+                width: root.checked ? 24px : 16px;
+                height: self.width;
+                y: (parent.height - self.height) / 2;
+                x: root.checked ? parent.width - self.width - 4px : 8px - 0px;
+                border-radius: OxideShape.full;
+                background: root.checked ? OxideTheme.colors.on-primary : OxideTheme.colors.outline;
+
+                animate x, width { duration: OxideMotion.short; easing: cubic-bezier(0.2, 0, 0, 1); }
+            }
+        }
+
+        if root.text != "": Text {
+            text: root.text;
+            font-size: OxideType.body-large.size;
+            font-family: OxideType.family;
+            color: root.enabled ? OxideTheme.colors.on-surface : OxideTheme.colors.on-surface.with-alpha(0.38);
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+
+    OxideFocusRing {
+        active: fs.has-focus;
+        radius: OxideShape.full;
+        x: track.x - 5px;
+        y: row.y + track.y - 5px;
+        width: 62px;
+        height: 42px;
+    }
+
+    fs := FocusScope {
+        enabled: root.enabled;
+        focus-on-click: false;
+
+        key-pressed(event) => {
+            if (event.text == " " || event.text == Key.Return) {
+                root.flip();
+                return accept;
+            }
+            reject
+        }
+
+        touch := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: pointer;
+            clicked => {
+                root.flip();
+            }
+        }
+    }
+}

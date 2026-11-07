@@ -1,0 +1,59 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideElevation } from "../tokens/elevation.slint";
+import { OxideMotion } from "../tokens/motion.slint";
+import { OxideDialogAction } from "oxide-dialog.slint";
+
+// M3 snackbar. The caller controls visibility through `shown` (no auto-timeout inside the
+// component, so the app can keep it up while an action is pending). Optional single action.
+export component OxideSnackbar inherits Rectangle {
+    in property <bool> shown;
+    in property <string> message;
+    in property <string> action-text;
+    callback action;
+    callback dismissed;
+
+    background: transparent;
+
+    panel := Rectangle {
+        width: min(root.width - 2 * OxideSpacing.lg, 560px);
+        height: row.preferred-height;
+        x: (root.width - self.width) / 2;
+        y: root.shown ? root.height - self.height - OxideSpacing.lg : root.height + OxideSpacing.lg;
+        border-radius: OxideShape.small;
+        background: OxideTheme.colors.inverse-surface;
+        drop-shadow-blur: OxideElevation.level(3).blur;
+        drop-shadow-offset-y: OxideElevation.level(3).offset-y;
+        drop-shadow-color: OxideTheme.colors.shadow.with-alpha(OxideElevation.level(3).opacity);
+
+        animate y { duration: OxideMotion.medium; easing: cubic-bezier(0.2, 0, 0, 1); }
+
+        row := HorizontalLayout {
+            padding-left: OxideSpacing.lg;
+            padding-right: OxideSpacing.sm;
+            padding-top: OxideSpacing.md;
+            padding-bottom: OxideSpacing.md;
+            spacing: OxideSpacing.md;
+
+            Text {
+                text: root.message;
+                font-size: OxideType.body-medium.size;
+                font-family: OxideType.family;
+                color: OxideTheme.colors.inverse-on-surface;
+                wrap: word-wrap;
+                vertical-alignment: center;
+                horizontal-stretch: 1;
+            }
+
+            if root.action-text != "": OxideDialogAction {
+                text: root.action-text;
+                primary: true;
+                clicked => {
+                    root.action();
+                }
+            }
+        }
+    }
+}

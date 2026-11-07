@@ -1,0 +1,150 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideAccents } from "../tokens/accents.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideMotion } from "../tokens/motion.slint";
+import { OxideIcons } from "oxide-icon.slint";
+import { OxideStateLayer, OxideFocusRing } from "oxide-state-layer.slint";
+
+export enum OxideChipVariant {
+    // Toggle that shows a check mark when selected.
+    filter,
+    // Action chip with an optional leading icon.
+    assist,
+    // Chip representing user input; shows a trailing remove button.
+    input,
+}
+
+// M3 chip. `accent` (>= 0) paints the chip with a color from OxideAccents, by index.
+export component OxideChip {
+    in property <string> text;
+    in property <OxideChipVariant> variant: OxideChipVariant.filter;
+    in property <bool> selected;
+    in property <int> accent: -1;
+    in property <image> icon;
+    in property <bool> enabled: true;
+    out property <bool> has-focus: fs.has-focus;
+    callback clicked;
+    callback removed;
+
+    property <bool> tinted: root.accent >= 0;
+    property <color> base-color: root.tinted
+        ? OxideAccents.container(root.accent)
+        : root.selected ? OxideTheme.colors.secondary-container : transparent;
+    property <color> content-color: root.tinted
+        ? OxideAccents.on-container(root.accent)
+        : root.selected ? OxideTheme.colors.on-secondary-container : OxideTheme.colors.on-surface;
+
+    height: 32px;
+    min-width: 48px;
+    preferred-width: row.preferred-width;
+
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-checked: root.selected;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if (root.enabled) {
+            root.clicked();
+        }
+    }
+
+    body := Rectangle {
+        border-radius: OxideShape.small;
+        background: root.base-color;
+        border-width: root.selected || root.tinted ? 0px : 1px;
+        border-color: OxideTheme.colors.outline;
+
+        animate background { duration: OxideMotion.medium; easing: cubic-bezier(0.2, 0, 0, 1); }
+
+        OxideStateLayer {
+            border-radius: parent.border-radius;
+            tint: root.content-color;
+            hovered: touch.has-hover;
+            pressed: touch.pressed;
+            focused: fs.has-focus;
+            enabled: root.enabled;
+        }
+
+        row := HorizontalLayout {
+            padding-left: OxideSpacing.md;
+            padding-right: root.variant == OxideChipVariant.input ? OxideSpacing.xs : OxideSpacing.md;
+            spacing: OxideSpacing.xs;
+            alignment: center;
+
+            if root.variant == OxideChipVariant.filter && root.selected: Image {
+                source: OxideIcons.check-small;
+                colorize: root.content-color;
+                width: 18px;
+                height: 18px;
+                image-fit: contain;
+            }
+
+            if root.variant == OxideChipVariant.assist && root.icon.width > 0: Image {
+                source: root.icon;
+                colorize: root.content-color;
+                width: 18px;
+                height: 18px;
+                image-fit: contain;
+            }
+
+            Text {
+                text: root.text;
+                font-size: OxideType.label-large.size;
+                font-weight: OxideType.label-large.weight;
+                font-family: OxideType.family;
+                color: root.content-color;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+
+            if root.variant == OxideChipVariant.input: Rectangle {
+                width: 24px;
+                height: 24px;
+                border-radius: OxideShape.full;
+
+                Image {
+                    source: OxideIcons.close;
+                    colorize: root.content-color;
+                    width: 18px;
+                    height: 18px;
+                    image-fit: contain;
+                }
+
+                remove-touch := TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => {
+                        root.removed();
+                    }
+                }
+            }
+        }
+    }
+
+    OxideFocusRing {
+        active: fs.has-focus;
+        radius: OxideShape.small;
+    }
+
+    fs := FocusScope {
+        enabled: root.enabled;
+        focus-on-click: false;
+
+        key-pressed(event) => {
+            if (event.text == " " || event.text == Key.Return) {
+                root.clicked();
+                return accept;
+            }
+            reject
+        }
+
+        touch := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: pointer;
+            clicked => {
+                root.clicked();
+            }
+        }
+    }
+}
