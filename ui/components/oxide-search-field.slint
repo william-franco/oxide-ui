@@ -21,9 +21,13 @@ export component OxideSearchField inherits Rectangle {
     accessible-role: text-input;
     accessible-label: root.placeholder;
 
-    HorizontalLayout {
+    // Vertical centering: fixed-height children would otherwise stick to the top of a horizontal row.
+    VerticalLayout {
+        alignment: center;
         padding-left: OxideSpacing.lg;
         padding-right: OxideSpacing.sm;
+
+    HorizontalLayout {
         spacing: OxideSpacing.md;
         alignment: center;
 
@@ -36,6 +40,9 @@ export component OxideSearchField inherits Rectangle {
         }
 
         Rectangle {
+            min-height: 24px;
+            vertical-stretch: 1;
+
             input := TextInput {
                 text <=> root.text;
                 font-size: OxideType.body-large.size;
@@ -87,5 +94,6 @@ export component OxideSearchField inherits Rectangle {
                 }
             }
         }
+    }
     }
 }

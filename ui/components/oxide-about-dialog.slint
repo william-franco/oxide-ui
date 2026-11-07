@@ -1,0 +1,104 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideDialog, OxideDialogAction } from "oxide-dialog.slint";
+
+// About screen as a dialog: app identity, version, license, copyright and project link (text only).
+export component OxideAboutDialog inherits Rectangle {
+    in property <bool> shown;
+    in property <image> app-icon;
+    in property <string> app-name;
+    in property <string> version;
+    in property <string> description;
+    in property <string> license;
+    in property <string> copyright;
+    in property <string> url;
+    callback dismissed;
+
+    background: transparent;
+
+    OxideDialog {
+        width: 100%;
+        height: 100%;
+        shown: root.shown;
+        headline: "Sobre";
+        dismissed => {
+            root.dismissed();
+        }
+
+        HorizontalLayout {
+            spacing: OxideSpacing.md;
+
+            if root.app-icon.width > 0: Image {
+                source: root.app-icon;
+                width: 48px;
+                height: 48px;
+                image-fit: contain;
+            }
+
+            VerticalLayout {
+                alignment: center;
+                spacing: 2px;
+
+                Text {
+                    text: root.app-name;
+                    font-size: OxideType.title-large.size;
+                    font-weight: OxideType.title-large.weight;
+                    font-family: OxideType.family;
+                    color: OxideTheme.colors.on-surface;
+                }
+
+                Text {
+                    text: "Versão " + root.version;
+                    font-size: OxideType.body-medium.size;
+                    font-family: OxideType.family;
+                    color: OxideTheme.colors.on-surface-variant;
+                }
+            }
+        }
+
+        Text {
+            text: root.description;
+            font-size: OxideType.body-large.size;
+            font-family: OxideType.family;
+            color: OxideTheme.colors.on-surface-variant;
+            wrap: word-wrap;
+        }
+
+        Text {
+            text: "Licença: " + root.license;
+            font-size: OxideType.body-medium.size;
+            font-family: OxideType.family;
+            color: OxideTheme.colors.on-surface-variant;
+            wrap: word-wrap;
+        }
+
+        Text {
+            text: root.copyright;
+            font-size: OxideType.body-medium.size;
+            font-family: OxideType.family;
+            color: OxideTheme.colors.on-surface-variant;
+            wrap: word-wrap;
+        }
+
+        Text {
+            text: root.url;
+            font-size: OxideType.body-medium.size;
+            font-family: OxideType.family;
+            color: OxideTheme.colors.primary;
+            wrap: word-wrap;
+        }
+
+        HorizontalLayout {
+            alignment: end;
+
+            OxideDialogAction {
+                text: "Fechar";
+                primary: true;
+                clicked => {
+                    root.dismissed();
+                }
+            }
+        }
+    }
+}

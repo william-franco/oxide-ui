@@ -8,7 +8,8 @@ slint::slint! {
         OxideDisplay, OxidePanel, OxideSurfaceTone, OxideListItem, OxideSegmented, OxideDivider,
         OxideTextField, OxideSearchField, OxideChip, OxideChipVariant, OxideCheckbox, OxideSwitch,
         OxideSelect, OxideDialog, OxideDialogAction, OxideFab, OxideSnackbar,
-        OxideDatePicker, OxideTimePicker,
+        OxideDatePicker, OxideTimePicker, OxideTopAppBar, OxideSwitchItem, OxideActionItem,
+        OxideAboutDialog,
     } from "ui/oxide.slint";
 
     export component Gallery inherits Window {
@@ -18,6 +19,8 @@ slint::slint! {
         background: OxideTheme.colors.surface;
 
         property <bool> dialog-shown: false;
+        property <bool> about-shown: false;
+        property <bool> dark-setting: false;
         property <bool> snack-shown: false;
         property <string> query;
 
@@ -129,6 +132,40 @@ slint::slint! {
                     text: "Mostrar diálogo";
                     variant: OxideButtonVariant.tonal;
                     clicked => { root.dialog-shown = true; }
+                }
+
+                OxideTopAppBar {
+                    title: "Configurações";
+                    show-back: true;
+                    back => { root.about-shown = false; }
+                }
+
+                OxideSwitchItem {
+                    icon: OxideIcons.dark-mode;
+                    headline: "Tema escuro";
+                    supporting: "Usa as cores escuras do Material 3";
+                    checked <=> root.dark-setting;
+                    toggled(v) => { OxideTheme.dark = v; }
+                }
+
+                OxideActionItem {
+                    icon: OxideIcons.info;
+                    headline: "Sobre";
+                    supporting: "Versão, licença e autor";
+                    clicked => { root.about-shown = true; }
+                }
+
+                OxideAboutDialog {
+                    width: 100%;
+                    height: 100%;
+                    shown: root.about-shown;
+                    app-name: "Oxide UI";
+                    version: "0.1.0";
+                    description: "Design system Oxide para apps desktop em Slint.";
+                    license: "MIT";
+                    copyright: "© 2026 William Franco";
+                    url: "github.com/william-franco/oxide-ui";
+                    dismissed => { root.about-shown = false; }
                 }
 
                 OxideButton {

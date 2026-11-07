@@ -1,0 +1,187 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideShape } from "../tokens/shape.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideStateLayer, OxideFocusRing } from "oxide-state-layer.slint";
+import { OxideSwitch } from "oxide-selection-controls.slint";
+
+// Settings row with a leading icon, title, supporting text and a switch. The whole row toggles.
+export component OxideSwitchItem inherits Rectangle {
+    in property <image> icon;
+    in property <string> headline;
+    in property <string> supporting;
+    in-out property <bool> checked;
+    in property <bool> enabled: true;
+    callback toggled(checked: bool);
+
+    min-height: 56px;
+    background: transparent;
+
+    accessible-role: switch;
+    accessible-label: root.headline;
+    accessible-checked: root.checked;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        root.flip();
+    }
+
+    function flip() {
+        if (root.enabled) {
+            root.checked = !root.checked;
+            root.toggled(root.checked);
+        }
+    }
+
+    // Declared first so the switch above it receives its own clicks.
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => {
+            root.flip();
+        }
+    }
+
+    VerticalLayout {
+        alignment: center;
+
+        HorizontalLayout {
+            padding-left: OxideSpacing.lg;
+            padding-right: OxideSpacing.lg;
+            spacing: OxideSpacing.md;
+
+            if root.icon.width > 0: Image {
+                source: root.icon;
+                colorize: OxideTheme.colors.on-surface-variant;
+                width: 24px;
+                height: 24px;
+                image-fit: contain;
+            }
+
+            VerticalLayout {
+                alignment: center;
+                horizontal-stretch: 1;
+                spacing: 2px;
+
+                Text {
+                    text: root.headline;
+                    font-size: OxideType.body-large.size;
+                    font-family: OxideType.family;
+                    color: root.enabled ? OxideTheme.colors.on-surface : OxideTheme.colors.on-surface.with-alpha(0.38);
+                    overflow: elide;
+                }
+
+                if root.supporting != "": Text {
+                    text: root.supporting;
+                    font-size: OxideType.body-medium.size;
+                    font-family: OxideType.family;
+                    color: OxideTheme.colors.on-surface-variant;
+                    overflow: elide;
+                }
+            }
+
+            OxideSwitch {
+                checked <=> root.checked;
+                enabled: root.enabled;
+                toggled(v) => {
+                    root.toggled(v);
+                }
+            }
+        }
+    }
+}
+
+// Settings row that runs an action (for example "Sobre"). Shows a state layer on hover and press.
+export component OxideActionItem inherits Rectangle {
+    in property <image> icon;
+    in property <string> headline;
+    in property <string> supporting;
+    in property <bool> enabled: true;
+    out property <bool> has-focus: fs.has-focus;
+    callback clicked;
+
+    min-height: 56px;
+    background: transparent;
+
+    accessible-role: button;
+    accessible-label: root.headline;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if (root.enabled) {
+            root.clicked();
+        }
+    }
+
+    OxideStateLayer {
+        border-radius: OxideShape.medium;
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+        focused: fs.has-focus;
+        enabled: root.enabled;
+    }
+
+    VerticalLayout {
+        alignment: center;
+
+        HorizontalLayout {
+            padding-left: OxideSpacing.lg;
+            padding-right: OxideSpacing.lg;
+            spacing: OxideSpacing.md;
+
+            if root.icon.width > 0: Image {
+                source: root.icon;
+                colorize: OxideTheme.colors.on-surface-variant;
+                width: 24px;
+                height: 24px;
+                image-fit: contain;
+            }
+
+            VerticalLayout {
+                alignment: center;
+                horizontal-stretch: 1;
+                spacing: 2px;
+
+                Text {
+                    text: root.headline;
+                    font-size: OxideType.body-large.size;
+                    font-family: OxideType.family;
+                    color: root.enabled ? OxideTheme.colors.on-surface : OxideTheme.colors.on-surface.with-alpha(0.38);
+                    overflow: elide;
+                }
+
+                if root.supporting != "": Text {
+                    text: root.supporting;
+                    font-size: OxideType.body-medium.size;
+                    font-family: OxideType.family;
+                    color: OxideTheme.colors.on-surface-variant;
+                    overflow: elide;
+                }
+            }
+        }
+    }
+
+    OxideFocusRing {
+        active: fs.has-focus;
+        radius: OxideShape.medium;
+    }
+
+    fs := FocusScope {
+        enabled: root.enabled;
+        focus-on-click: false;
+
+        key-pressed(event) => {
+            if (event.text == " " || event.text == Key.Return) {
+                root.clicked();
+                return accept;
+            }
+            reject
+        }
+
+        touch := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: pointer;
+            clicked => {
+                root.clicked();
+            }
+        }
+    }
+}

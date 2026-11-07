@@ -1,0 +1,49 @@
+import { OxideTheme } from "../theme.slint";
+import { OxideType } from "../tokens/typography.slint";
+import { OxideSpacing } from "../tokens/spacing.slint";
+import { OxideIcons } from "oxide-icon.slint";
+import { OxideIconButton } from "oxide-icon-button.slint";
+
+// M3 top app bar for secondary screens: optional back button, title and trailing actions (@children).
+export component OxideTopAppBar inherits Rectangle {
+    in property <string> title;
+    in property <bool> show-back: true;
+    callback back();
+
+    height: 64px;
+    background: transparent;
+
+    // Fixed-height children are centred vertically by the inner layout, not by the row.
+    VerticalLayout {
+        alignment: center;
+
+        HorizontalLayout {
+            padding-left: OxideSpacing.sm;
+            padding-right: OxideSpacing.sm;
+            spacing: OxideSpacing.sm;
+            alignment: start;
+
+            if root.show-back: OxideIconButton {
+                icon: OxideIcons.arrow-back;
+                description: "Voltar";
+                clicked => {
+                    root.back();
+                }
+            }
+
+            Text {
+                text: root.title;
+                font-size: OxideType.title-large.size;
+                font-weight: OxideType.title-large.weight;
+                font-family: OxideType.family;
+                color: OxideTheme.colors.on-surface;
+                vertical-alignment: center;
+                overflow: elide;
+                horizontal-stretch: 1;
+                min-width: 0px;
+            }
+
+            @children
+        }
+    }
+}

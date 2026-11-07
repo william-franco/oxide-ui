@@ -22,6 +22,9 @@ A crate não tem dependências de runtime: ela distribui apenas arquivos `.slint
 - `OxideDialog` e `OxideDialogAction` (scrim, Esc e clique fora emitem `dismissed`).
 - `OxideSideSheet` (fixo ou modal, com `shown`).
 - `OxideFab` (com ou sem texto) e `OxideSnackbar` (controlado por `shown`, sem timeout interno).
+- `OxideTopAppBar`: barra de topo de telas secundárias, com botão de voltar (`back`) e ações via `@children`.
+- `OxideSwitchItem` (linha de configuração com switch, o toque na linha também alterna) e `OxideActionItem` (linha que executa uma ação).
+- `OxideAboutDialog`: diálogo "Sobre" com nome, versão, descrição, licença, copyright e link (texto).
 - `OxideAccents`: 8 cores de acento (containers claro e escuro) indexadas por `int`.
 
 Os componentes são independentes de domínio. O app decide o que cada um representa.
